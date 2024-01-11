@@ -13,7 +13,7 @@ ENV GOBIN /bin
 COPY . /echo
 WORKDIR /echo
 
-RUN go install ./cmd/echo
+RUN go install ./cmd/echoserver
 
 EXPOSE 8080
 CMD [ "/bin/echo" ]
