@@ -1,0 +1,8 @@
+{
+	"name": "Echo Server Development",
+	"image": "mcr.microsoft.com/devcontainers/base:jammy",
+	"features": {
+		"ghcr.io/devcontainers/features/go:1": {},
+		"ghcr.io/stuartleeks/dev-container-features/shell-history:0": {}
+	}
+}

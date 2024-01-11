@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>HTTP Server Environment Debugger</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="HTTP Server Environment Debugger">
+  <style>
+    body {
+      font-family: 'Consolas', 'Courier', monospace;
+      color: var(--color-gray);
+    }
+
+    summary {
+      list-style: none;
+      cursor: pointer;
+    }
+
+    summary::-webkit-details-marker,
+    summary::marker {
+      display: none;
+    }
+
+    details>summary>*:first-child {
+      display: flex;
+      flex-direction: row;
+    }
+
+    details>summary>*:first-child::after {
+      content: {{- icon "show" -}};
+      opacity: 50%;
+      padding-left: 0.25em;
+    }
+
+    details>summary:hover>*:first-child::after {
+      opacity: 80%;
+    }
+
+    details[open]>summary>*:first-child::after {
+      content: {{- icon "hide" -}};
+      opacity: 80%;
+    }
+
+    article {
+      padding-top: 1em;
+    }
+
+    section ul {
+      padding: 0 0.25em 0 0;
+    }
+
+    section ul li {
+      list-style: none;
+      padding: inherit;
+    }
+
+    .informational {
+      color: #666;
+      font-weight: lighter;
+    }
+
+    p.informational {
+      background-color: #f9f9f9;
+      padding: 0.5em;
+      border-radius: 0.25em;
+    }
+
+    .distinct {
+      font-weight: bold;
+      font-size: larger;
+      border-radius: 0.25em;
+      display: inline-block;
+      padding: 0.125em 0.25em;
+      margin: 0.1em;
+    }
+
+    .focus:hover>*:not( :hover ) .distinct {
+      color: var(--color-gray);
+      background-color: color-mix(in srgb, var(--color-gray) 15%, white);
+    }
+
+    .focus>*:hover {
+      font-weight: bold;
+      background-color: #f9f9f9;
+      border-radius: 0.25em;
+    }
+
+
+{{- with .Colors }}
+    {{ $nc := len . }}
+    :root {
+    {{- range $i, $c := . }}
+      --color-{{- $i -}}: {{ $c.CSS }};
+    {{- end }}
+      --color-gray: rgb(79 79 79);
+    }
+
+    {{- range $i, $c := . }}
+    {{ $plus := ( mod ( add $i 1 ) $nc ) }}
+    .distinct:nth-of-type({{- $nc -}}n{{- if $plus -}} + {{- $plus -}}{{ end -}}) {
+      color: var(--color-{{- $i -}});
+      background-color: color-mix(in srgb, var(--color-{{- $i -}}) 20%, white);
+    }
+    {{- end }}
+{{ end }}
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Debug Server</h1>
+  </header>
+
+{{ with .Request }}
+  <article id="http-request">
+    <h2>Current HTTP Request <span class="informational">(from peer {{ .Requestor }})</span></h2>
+
+    <section id="http-request-start"
+        data-http-method="{{ .Method }}"
+        data-http-target="{{ .Target }}"
+        data-http-protocol="{{ .Proto }}">
+      <h3>Request Line</h3>
+      <div>
+        <p><span id="http-request-method" class="distinct">{{ .Method }}</span>
+        <span id="http-request-target" class="distinct">{{ .Target }}</span>
+        <span id="http-request-protocol" class="distinct">{{ .Proto }}</span></p>
+      </div>
+    </section>
+
+    <section id="http-header">
+      <h3>Request Header <span class="informational">({{- len .Headers }})</span></h3>
+      <ul class="focus">
+      {{- range .Headers }}
+        <li data-header-name="{{- .Name -}}" data-header-value="{{- .Value -}}">
+          <span class="distinct header-name">{{- .Name -}}</span>:
+          {{- if .Value }}
+            <span class="header-value">{{- .Value -}}</span>
+          {{- else }}
+            <span class="informational">(no value)</span>
+          {{- end }}
+        </li>
+      {{- end }}
+      </ul>
+    </section>
+
+    <section id="http-body">
+    {{ if .Body.Content }}
+      <details>
+        <summary>
+          <h3>Request Body <span class="informational">({{- len .Body.Content }} bytes)</span></h3>
+        </summary>
+        {{/*
+          The Go html/template package escapes this for safety, but it 
+          may end up ugly.  
+        */}}
+        <code>{{- .Body.Content -}}</code>
+      </details>
+    {{ else -}}
+      <h3>Request Body <span class="informational">({{- len .Body.Content }} bytes)</span></h3>
+    {{ end -}}
+    </section>
+  </article>
+{{- end }}
+
+{{ with .Environment }}
+  <article id="server-environment">
+    <h2>Server Environment</h2>
+    <section id="environment-variables">
+      <details>
+        <summary>
+          <h3>Environment Variables <span class="informational">({{- len .Variables -}})</span></h3>
+        </summary>
+        <p class="informational">
+          For security, only environment variables listed in the <code class="distinct">ECHO_VARS</code>
+          variable will be displayed in this interface.
+        </p>
+        <ul class="focus">
+        {{- range .Variables }}
+          <li data-variable-name="{{- .Name -}}" data-variable-value="{{- .Value -}}">
+            <span class="distinct variable-name">{{- .Name -}}</span>:
+            {{- if .Value }}
+              <span class="variable-value">{{- .Value -}}</span>
+            {{- else }}
+              <span class="informational">(no value)</span>
+            {{- end }}
+          </li>
+        {{- end }}
+        </ul>
+      </details>
+    </section>
+  </article>
+{{- end }}
+
+</body>
+</html>
