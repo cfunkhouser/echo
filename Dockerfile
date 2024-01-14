@@ -16,4 +16,4 @@ WORKDIR /echo
 RUN go install ./cmd/echoserver
 
 EXPOSE 8080
-CMD [ "/bin/echo" ]
+CMD [ "/bin/echoserver" ]
