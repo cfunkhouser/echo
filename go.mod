@@ -1,3 +1,3 @@
 module idontfixcomputers.com/echo
 
-go 1.21
+go 1.22
