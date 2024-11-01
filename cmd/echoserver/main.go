@@ -5,6 +5,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
@@ -12,7 +13,15 @@ import (
 	"idontfixcomputers.com/echo"
 )
 
-var address = flag.String("address", ":8080",
+func envOr(env, def string) string {
+	port := def
+	if v, ok := os.LookupEnv(env); ok {
+		port = v
+	}
+	return fmt.Sprintf(":%s", port)
+}
+
+var address = flag.String("address", envOr("PORT", "8080"),
 	"Bind address in host:port format.")
 
 func main() {
